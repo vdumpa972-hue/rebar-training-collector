@@ -463,3 +463,475 @@ button:disabled {
     justify-content: flex-start;
   }
 }
+
+.recordIdText {
+  display: inline-block;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.recordsTable td, .recordsTable th {
+  vertical-align: top;
+}
+
+
+/* Training records admin list: card layout with obvious edit action */
+.recordCards {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.recordCard {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fbfdff;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.recordCardTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+
+.recordTitleBlock {
+  min-width: 0;
+}
+
+.recordTitleBlock h3 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.recordIdTextFull {
+  display: block;
+  max-width: 100%;
+  color: var(--muted);
+  background: #eef2ff;
+  border-radius: 8px;
+  padding: 4px 8px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  font-size: 12px;
+}
+
+.recordActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.recordMetaGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 14px;
+}
+
+.recordMetaGrid div {
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.recordMetaGrid span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 2px;
+}
+
+.recordMetaGrid strong {
+  display: block;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.emptyState {
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  color: var(--muted);
+  background: #f8fafc;
+}
+
+@media (max-width: 1000px) {
+  .recordCardTop {
+    grid-template-columns: 1fr;
+  }
+  .recordActions {
+    justify-content: flex-start;
+  }
+  .recordMetaGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .recordMetaGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Simplified schema v2 collector UI */
+.elementSection {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #ffffff;
+  margin: 18px 0;
+  padding: 14px;
+}
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.sectionHeader h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.dataCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #f8fafc;
+  padding: 12px;
+  margin: 10px 0;
+}
+.miniGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 12px;
+}
+.copyBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+.copyHelpText {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 8px 0;
+}
+.copyDownButton {
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.markBanner {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  font-weight: 800;
+}
+.evidenceHint {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 6px 8px;
+}
+.cropList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.cropCard {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px;
+  background: white;
+  display: grid;
+  gap: 4px;
+}
+.cropCard img {
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+@media (max-width: 900px) {
+  .miniGrid, .grid2 { grid-template-columns: 1fr; }
+}
+
+/* Patch: restore clean simplified-v2 form styling and fix crop rectangle offset */
+.pdfWrap {
+  position: relative;
+  overflow: auto;
+  max-height: calc(100vh - 300px);
+  min-height: 220px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #eef2f7;
+  margin-top: 12px;
+}
+.pdfWrap canvas {
+  display: block;
+}
+.pdfWrap .selection,
+.selection {
+  position: absolute;
+  border: 2px dashed #dc2626;
+  background: rgba(220, 38, 38, .12);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.formPanel label,
+.cropBox label,
+.dataCard label,
+.elementSection label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #42526b;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+.formPanel input,
+.formPanel select,
+.formPanel textarea,
+.cropBox input,
+.cropBox select,
+.cropBox textarea,
+.dataCard input,
+.dataCard select,
+.dataCard textarea,
+.elementSection input,
+.elementSection select,
+.elementSection textarea {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px;
+  background: #fff;
+  color: var(--ink);
+  width: 100%;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.formPanel textarea,
+.dataCard textarea,
+.elementSection textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.formPanel .grid2,
+.cropBox .grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 12px 16px;
+  align-items: end;
+}
+
+.cropBox {
+  margin-top: 16px;
+  padding-top: 12px;
+}
+
+.formPanel .grid2 + label,
+.formPanel > label {
+  margin-top: 10px;
+}
+
+.elementSection {
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.dataCard {
+  background: #fbfdff;
+  border: 1px solid var(--line);
+}
+
+.miniGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.evidencePicker summary {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 1000px) {
+  .formPanel .grid2,
+  .cropBox .grid2,
+  .miniGrid {
+    grid-template-columns: 1fr;
+  }
+  .pdfWrap { max-height: 70vh; }
+}
+
+
+.sectionNote {
+  margin: 0 0 12px 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.fieldCard {
+  border: 1px solid var(--line);
+  background: #f8fbff;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.fieldCard h4 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.wideField {
+  grid-column: 1 / -1;
+}
+
+/* Patch 2026-06-08: crop dropdown full names, safe form layout */
+.formPanel,
+.elementSection,
+.dataCard,
+.fieldCard,
+.miniGrid,
+.grid2 {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.miniGrid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  overflow: visible;
+}
+
+.formPanel label,
+.cropBox label,
+.dataCard label,
+.elementSection label {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  white-space: normal;
+}
+
+.formPanel input,
+.formPanel select,
+.formPanel textarea,
+.cropBox input,
+.cropBox select,
+.cropBox textarea,
+.dataCard input,
+.dataCard select,
+.dataCard textarea,
+.elementSection input,
+.elementSection select,
+.elementSection textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.evidencePicker summary {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.25;
+  padding-right: 34px;
+}
+
+.evidenceMenu {
+  left: 0;
+  right: auto;
+  width: min(520px, calc(100vw - 48px));
+  max-width: calc(100vw - 48px);
+}
+
+.evidenceOption span {
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+
+/* Patch 2026-06-08b: keep crop dropdown options readable inside form labels */
+.evidenceMenu {
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.evidenceMenu .evidenceHint {
+  display: block;
+  max-width: 100%;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.evidenceMenu .evidenceOption {
+  display: grid !important;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  flex-direction: row !important;
+}
+
+.evidenceMenu .evidenceOption input {
+  width: 18px !important;
+  min-width: 18px !important;
+  height: 18px;
+  margin: 0;
+}
+
+.evidenceMenu .evidenceOption span {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-align: left;
+  line-height: 1.25;
+}
+
+.bottomAddRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}

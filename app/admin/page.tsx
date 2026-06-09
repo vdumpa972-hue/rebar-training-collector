@@ -74,7 +74,7 @@ export default function AdminPage() {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("FFLL972");
-  const [role, setRole] = useState("collector");
+  const [role, setRole] = useState("user");
   const [sendSetupEmail, setSendSetupEmail] = useState(true);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [records, setRecords] = useState<SavedTrainingRecord[]>([]);
@@ -84,20 +84,39 @@ export default function AdminPage() {
   const [busy, setBusy] = useState(false);
 
   const isOwner = currentEmail.toLowerCase() === OWNER_EMAIL || currentRole === "owner";
-  const roleOptions = isOwner ? ["collector", "admin"] : ["collector"];
+  const roleOptions = isOwner ? ["user", "admin"] : ["user"];
 
   async function loadUsers() {
     const snap = await getDocs(query(collection(db, "users"), orderBy("email")));
     setUsers(snap.docs.map((d) => ({ id: d.id, ...d.data() } as UserRow)));
   }
 
+  function recordSortValue(record: SavedTrainingRecord) {
+    const anyRecord = record as Record<string, unknown>;
+    const updatedAt = anyRecord.updatedAt as { toMillis?: () => number } | undefined;
+    if (updatedAt?.toMillis) return updatedAt.toMillis();
+    const updatedAtIso = typeof anyRecord.updatedAtIso === "string" ? anyRecord.updatedAtIso : "";
+    const createdAtIso = typeof anyRecord.createdAtIso === "string" ? anyRecord.createdAtIso : "";
+    return Date.parse(updatedAtIso || createdAtIso || "") || 0;
+  }
+
   async function loadRecords() {
-    const snap = await getDocs(query(collection(db, "trainingRecords"), orderBy("updatedAt", "desc")));
-    setRecords(snap.docs.map((d) => ({ id: d.id, ...d.data() } as SavedTrainingRecord)));
+    try {
+      // Do not use orderBy here. Firestore orderBy excludes documents missing that field,
+      // which made older training records disappear from the Admin screen.
+      const snap = await getDocs(collection(db, "trainingRecords"));
+      const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() } as SavedTrainingRecord));
+      rows.sort((a, b) => recordSortValue(b) - recordSortValue(a));
+      setRecords(rows);
+    } catch (e) {
+      setError(e instanceof Error ? `Could not load training records: ${e.message}` : "Could not load training records");
+      setRecords([]);
+    }
   }
 
   async function loadAllAdminData() {
-    await Promise.all([loadUsers(), loadRecords()]);
+    await loadUsers();
+    await loadRecords();
   }
 
   useEffect(() => {
@@ -114,7 +133,7 @@ export default function AdminPage() {
       const emailValue = user.email || "";
       setCurrentEmail(emailValue);
       const snap = await getDoc(doc(db, "users", user.uid));
-      let userRole = String(snap.data()?.role || "collector").toLowerCase();
+      let userRole = String(snap.data()?.role || "user").toLowerCase();
 
       if (emailValue.toLowerCase() === OWNER_EMAIL) {
         userRole = "owner";
@@ -149,7 +168,7 @@ export default function AdminPage() {
       const cleanEmail = email.trim().toLowerCase();
       const cleanUsername = makeUsername(username || cleanEmail);
       const cleanDisplayName = displayName.trim() || cleanUsername || cleanEmail;
-      const cleanRole = role === "admin" && !isOwner ? "collector" : role;
+      const cleanRole = role === "admin" && !isOwner ? "user" : role;
       if (!cleanEmail) throw new Error("Enter email.");
       if (!password || password.length < 6) throw new Error("Temporary password must be at least 6 characters.");
 
@@ -198,7 +217,7 @@ export default function AdminPage() {
       setUsername("");
       setDisplayName("");
       setPassword("FFLL972");
-      setRole("collector");
+      setRole("user");
       await loadUsers();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create user");
@@ -257,11 +276,11 @@ export default function AdminPage() {
 
       <div className="grid adminGrid">
         <section className="panel">
-          <h2>{isOwner ? "Add admin or collector" : "Add collector"}</h2>
-          <p className="muted">Owner can create admins and collectors. Admins can create collectors only. Firebase sends setup/reset emails from its no-reply address.</p>
-          <div className="field"><label>Name</label><input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Example: John Collector" autoComplete="name" /></div>
-          <div className="field"><label>Email</label><input value={email} onChange={(e) => handleEmailChange(e.target.value)} placeholder="collector@email.com" autoComplete="email" /></div>
-          <div className="field"><label>Username</label><input value={username} onChange={(e) => setUsername(makeUsername(e.target.value))} placeholder="john.collector" autoComplete="username" /></div>
+          <h2>{isOwner ? "Add admin or user" : "Add user"}</h2>
+          <p className="muted">Owner can create admins and users. Admins can create users only. Firebase sends setup/reset emails from its no-reply address.</p>
+          <div className="field"><label>Name</label><input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Example: John User" autoComplete="name" /></div>
+          <div className="field"><label>Email</label><input value={email} onChange={(e) => handleEmailChange(e.target.value)} placeholder="user@email.com" autoComplete="email" /></div>
+          <div className="field"><label>Username</label><input value={username} onChange={(e) => setUsername(makeUsername(e.target.value))} placeholder="john.user" autoComplete="username" /></div>
           <div className="field"><label>Temporary password</label><input value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" /></div>
           <div className="field"><label>Role</label><select value={role} onChange={(e) => setRole(e.target.value)}>{roleOptions.map((r) => <option key={r}>{r}</option>)}</select></div>
           <label className="checkRow"><input type="checkbox" checked={sendSetupEmail} onChange={(e) => setSendSetupEmail(e.target.checked)} /> Send password setup email</label>
@@ -270,7 +289,7 @@ export default function AdminPage() {
 
         <section className="panel">
           <h2>Users</h2>
-          <p className="muted">Manage owner, admin, and collector accounts. Long emails are shown on separate lines so they do not overlap.</p>
+          <p className="muted">Manage owner, admin, and user accounts. Long emails are shown on separate lines so they do not overlap.</p>
           <div className="userCards">
             {users.map((u) => (
               <div className="userCard" key={u.id}>
@@ -278,7 +297,7 @@ export default function AdminPage() {
                   <div className="userLine"><span>Email</span><strong>{u.email || "-"}</strong></div>
                   <div className="userLine"><span>Username</span><strong>{u.username || "-"}</strong></div>
                   <div className="userLine"><span>Name</span><strong>{u.displayName || "-"}</strong></div>
-                  <div className="userLine"><span>Role</span><strong className="pill">{u.role || "collector"}</strong></div>
+                  <div className="userLine"><span>Role</span><strong className="pill">{u.role || "user"}</strong></div>
                   <div className="userLine"><span>Status</span><strong>{u.status || "active"}{u.mustChangePassword ? " / setup" : ""}</strong></div>
                 </div>
                 <div className="userActions">
@@ -295,16 +314,50 @@ export default function AdminPage() {
       </div>
 
       <section className="panel">
-        <div className="row between"><h2>Collected training records</h2><button className="secondary" onClick={loadRecords}>Refresh</button></div>
-        <p className="muted">Owner and admins can review everything collected by collectors. Click Edit to continue a collection job in the workspace.</p>
-        <div className="tableWrap">
-          <table className="table recordsTable">
-            <thead><tr><th>Project</th><th>PDF</th><th>Pages Used</th><th>Collector</th><th>Status</th><th>Crops</th><th>Piers</th><th>Rebar</th><th>Updated</th><th>Actions</th></tr></thead>
-            <tbody>{records.map((r) => <tr key={r.id}>
-              <td>{safeText(r.projectName)}</td><td>{safeText(r.pdfFileName)}</td><td>{safeText(r.pageNumber)}</td><td>{safeText(r.collectorName || r.createdByEmail)}</td><td>{safeText(r.status)}</td><td>{r.crops?.length || 0}</td><td>{r.piers?.length || 0}</td><td>{r.rebarItems?.length || 0}</td><td>{dateText(r.updatedAt)}</td><td><div className="actionStack"><button className="secondary smallButton" onClick={() => setSelectedRecord(r)}>View</button><Link className="secondary smallButton buttonLink" href={`/workspace?recordId=${r.id}`}>Edit</Link></div></td>
-            </tr>)}</tbody>
-          </table>
+        <div className="row between">
+          <h2>Collected training records</h2>
+          <button className="secondary" onClick={loadRecords}>Refresh</button>
         </div>
+        <p className="muted">
+          Owner and admins can review everything collected by users. Showing {records.length} Firestore training record(s).
+          Use <b>Edit in Workspace</b> to continue a collection job without creating a duplicate.
+        </p>
+
+        {records.length === 0 ? (
+          <div className="emptyState">No training records found yet.</div>
+        ) : (
+          <div className="recordCards">
+            {records.map((r) => (
+              <article className="recordCard" key={r.id}>
+                <div className="recordCardTop">
+                  <div className="recordTitleBlock">
+                    <h3>{safeText(r.projectName) || "Untitled training record"}</h3>
+                    <code className="recordIdTextFull">{r.id}</code>
+                  </div>
+                  <div className="recordActions">
+                    <Link className="primary smallButton buttonLink" href={`/workspace?recordId=${r.id}`}>
+                      Edit in Workspace
+                    </Link>
+                    <button className="secondary smallButton" onClick={() => setSelectedRecord(r)}>
+                      View Details
+                    </button>
+                  </div>
+                </div>
+
+                <div className="recordMetaGrid">
+                  <div><span>PDF</span><strong>{safeText(r.pdfFileName) || "-"}</strong></div>
+                  <div><span>Pages Used</span><strong>{safeText(r.pageNumber) || "-"}</strong></div>
+                  <div><span>User</span><strong>{safeText(r.userName || r.createdByEmail) || "-"}</strong></div>
+                  <div><span>Status</span><strong>{safeText(r.status) || "-"}</strong></div>
+                  <div><span>Crops</span><strong>{r.crops?.length || 0}</strong></div>
+                  <div><span>Piers</span><strong>{r.piersV2?.length || r.piers?.length || 0}</strong></div>
+                  <div><span>Elements</span><strong>{(r.foundationV2?.length || 0) + (r.footingWallsV2?.length || 0) + (r.piersV2?.length || 0) + (r.ventsV2?.length || 0) + (r.crawlSpacesV2?.length || 0) + (r.miscV2?.length || 0) || r.rebarItems?.length || 0}</strong></div>
+                  <div><span>Updated</span><strong>{dateText(r.updatedAt) || "-"}</strong></div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       {selectedRecord && <section className="panel recordDetail">
@@ -314,7 +367,7 @@ export default function AdminPage() {
           <div><b>PDF:</b> {selectedRecord.pdfFileName}</div>
           <div><b>Pages Used:</b> {selectedRecord.pageNumber}</div>
           <div><b>Status:</b> {selectedRecord.status}</div>
-          <div><b>Collector:</b> {selectedRecord.collectorName || selectedRecord.createdByEmail}</div>
+          <div><b>User:</b> {selectedRecord.userName || selectedRecord.createdByEmail}</div>
           <div><b>Foundation:</b> {selectedRecord.foundationType}</div>
         </div>
         <h3>Crops</h3>

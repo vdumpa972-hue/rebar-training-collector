@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import {
@@ -30,7 +30,7 @@ function looksLikeEmail(value: string) {
 }
 
 function effectiveRole(email: string, dbRole: string) {
-  return email.toLowerCase() === OWNER_EMAIL ? "owner" : (dbRole || "collector").toLowerCase();
+  return email.toLowerCase() === OWNER_EMAIL ? "owner" : (dbRole || "user").toLowerCase();
 }
 
 export default function AuthPage() {
@@ -76,10 +76,10 @@ export default function AuthPage() {
   async function afterLogin(uid: string, userEmail: string, originalLogin: string) {
     const ref = doc(db, "users", uid);
     const snap = await getDoc(ref);
-    let dbRole = "collector";
+    let dbRole = "user";
 
     if (!snap.exists()) {
-      dbRole = userEmail.toLowerCase() === OWNER_EMAIL ? "owner" : "collector";
+      dbRole = userEmail.toLowerCase() === OWNER_EMAIL ? "owner" : "user";
       await setDoc(ref, {
         email: userEmail,
         username: userEmail.split("@")[0],
@@ -89,7 +89,7 @@ export default function AuthPage() {
         updatedAt: serverTimestamp(),
       }, { merge: true });
     } else {
-      dbRole = String(snap.data()?.role || "collector").toLowerCase();
+      dbRole = String(snap.data()?.role || "user").toLowerCase();
       if (userEmail.toLowerCase() === OWNER_EMAIL && dbRole !== "owner") {
         await setDoc(ref, { role: "owner", updatedAt: serverTimestamp() }, { merge: true });
       }
@@ -112,6 +112,11 @@ export default function AuthPage() {
     } finally { setLoading(false); }
   }
 
+  function submitLogin(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!loading) login();
+  }
+
   async function reset() {
     setError(""); setNotice("");
     if (!loginId.trim()) { setError("Enter your email or username first."); return; }
@@ -124,18 +129,18 @@ export default function AuthPage() {
   }
 
   return <main className="page">
-    <div className="authBox panel">
+    <form className="authBox panel" onSubmit={submitLogin}>
       <div className="brand">Login</div>
-      <p className="muted">Collectors can sign in with email or username. Browser history suggestions are enabled.</p>
+      <p className="muted">Users can sign in with email or username. Browser history suggestions are enabled.</p>
       {notice && <p className="notice">{notice}</p>}
       {error && <p className="error">{error}</p>}
       <div className="field"><label>Email or username</label><input id="username" name="username" type="text" value={loginId} onChange={e=>setLoginId(e.target.value)} autoComplete="username email" list="recent-logins" />
         <datalist id="recent-logins">{loginHistory.map(e => <option key={e} value={e} />)}</datalist></div>
       <div className="field"><label>Password</label><input id="password" name="password" value={password} onChange={e=>setPassword(e.target.value)} type="password" autoComplete="current-password" /></div>
       <div className="splitButtons">
-        <button disabled={loading} onClick={login}>Login</button>
-        <button disabled={loading} className="secondary" onClick={reset}>Forgot / Set password</button>
+        <button disabled={loading} type="submit">Login</button>
+        <button disabled={loading} type="button" className="secondary" onClick={reset}>Forgot / Set password</button>
       </div>
-    </div>
+    </form>
   </main>;
 }
